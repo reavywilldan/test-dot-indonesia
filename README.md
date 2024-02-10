@@ -6,4 +6,12 @@ step untuk menginstall
 - lakukan npm install untuk menginstall dependency js
 - copy semua value dari .env.example dan paste kan ke dalam file baru .env
 - sesuaikan env dengan engine anda
-- lakukan php migrate
+- lakukan php artisan migrate
+- lakukan php artisan db:seed --class=UsersTableSeeder
+- env SOURCE_IMPLEMENTATION diisi dengan db / rajaongkir
+- set header Accept application/json pada request /api/search/provinces dan /api/search/cities
+
+data login untuk mendapatkan access token yang akan di set ke header bearer token ketika get province dan city
+
+username: cek@mail.com
+password: password

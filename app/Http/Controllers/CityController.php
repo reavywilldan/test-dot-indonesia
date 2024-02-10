@@ -6,12 +6,21 @@ use App\Models\City;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use App\Services\RajaOngkirService;
 
 class CityController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
+    protected $RajaOngkirService;
+
+    public function __construct(RajaOngkirService $RajaOngkirService)
+    {
+        $this->RajaOngkirService = $RajaOngkirService;
+        $this->middleware('auth:sanctum');
+    }
+
     public function index(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -23,18 +32,23 @@ class CityController extends Controller
         }
 
         $id = $request->query('id');
+        $sourceImplementation = env('SOURCE_IMPLEMENTATION', 'db');
 
-        if ($id === null) {
-            $cities = City::select('city_id', 'province_id', 'province', 'type', 'city_name', 'postal_code')->get();
-            return response()->json($cities);
-        }
+        if ($sourceImplementation == 'db') {
+            if ($id === null) {
+                $cities = City::select('city_id', 'province_id', 'province', 'type', 'city_name', 'postal_code')->get();
+                return response()->json($cities);
+            }
 
-        $city = City::select('city_id', 'province_id', 'province', 'type', 'city_name', 'postal_code')->first();
+            $city = City::select('city_id', 'province_id', 'province', 'type', 'city_name', 'postal_code')->first();
 
-        if ($city) {
-            return response()->json($city);
-        } else {
-            return response()->json(['message' => 'City not found'], 404);
+            if ($city) {
+                return response()->json($city);
+            } else {
+                return response()->json(['message' => 'City not found'], 404);
+            }
+        } else if ($sourceImplementation == 'rajaongkir') {
+            return $this->RajaOngkirService->getCity($id);
         }
     }
 

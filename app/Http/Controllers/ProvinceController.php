@@ -6,12 +6,21 @@ use App\Models\Province;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use App\Services\RajaOngkirService;
 
 class ProvinceController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
+    protected $RajaOngkirService;
+
+    public function __construct(RajaOngkirService $RajaOngkirService)
+    {
+        $this->RajaOngkirService = $RajaOngkirService;
+        $this->middleware('auth:sanctum');
+    }
+
     public function index(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -23,18 +32,23 @@ class ProvinceController extends Controller
         }
 
         $id = $request->query('id');
+        $sourceImplementation = env('SOURCE_IMPLEMENTATION', 'db');
 
-        if ($id === null) {
-            $provinces = Province::select('province_id', 'province')->get();
-            return response()->json($provinces);
-        }
+        if ($sourceImplementation == 'db') {
+            if ($id === null) {
+                $provinces = Province::select('province_id', 'province')->get();
+                return response()->json($provinces);
+            }
 
-        $province = Province::select('province_id', 'province')->where('id', $id)->first();
+            $province = Province::select('province_id', 'province')->where('id', $id)->first();
 
-        if ($province) {
-            return response()->json($province);
-        } else {
-            return response()->json(['message' => 'Province not found'], 404);
+            if ($province) {
+                return response()->json($province);
+            } else {
+                return response()->json(['message' => 'Province not found'], 404);
+            }
+        } else if ($sourceImplementation == 'rajaongkir') {
+            return $this->RajaOngkirService->getProvince($id);
         }
     }
 
