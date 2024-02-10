@@ -7,6 +7,7 @@ step untuk menginstall
 - copy semua value dari .env.example dan paste kan ke dalam file baru .env
 - sesuaikan env dengan engine anda
 - lakukan php artisan migrate
+- lakukan php artisan app:fetch-data-area untuk mengimport data dari rajaongkir
 - lakukan php artisan db:seed --class=UsersTableSeeder
 - env SOURCE_IMPLEMENTATION diisi dengan db / rajaongkir
 - set header Accept application/json pada request /api/search/provinces dan /api/search/cities
