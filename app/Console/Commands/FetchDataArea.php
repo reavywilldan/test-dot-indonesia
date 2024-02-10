@@ -3,8 +3,10 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Http;
-use Illuminate\Http\Client\RequestException;
+use App\Models\Province;
+use App\Models\City;
+
+use App\Services\RajaOngkirService;
 
 class FetchDataArea extends Command
 {
@@ -21,54 +23,42 @@ class FetchDataArea extends Command
      * @var string
      */
     protected $description = 'To import area data from Rajaongkir to DB';
+    protected $RajaOngkirService;
 
     /**
      * Execute the console command.
      */
 
-    public function getProvince()
+    public function __construct(RajaOngkirService $RajaOngkirService)
     {
-        try {
-            $url = env('API_URL_RAJAONGKIR') . 'province';
-            $key = env('API_KEY_RAJAONGKIR');
-
-            $response = Http::withHeaders([
-                'key' => $key
-            ])->get($url);
-
-            $data = $response->json();
-            $data = $data['rajaongkir']['results'] ?? [];
-
-            return $data;
-        } catch (RequestException $e) {
-            report($e);
-            return response()->json(['error' => 'Error fetching data from the API'], 500);
-        }
-    }
-
-    public function getCity()
-    {
-        try {
-            $url = env('API_URL_RAJAONGKIR') . 'city';
-            $key = env('API_KEY_RAJAONGKIR');
-
-            $response = Http::withHeaders([
-                'key' => $key
-            ])->get($url);
-
-            $data = $response->json();
-            $data = $data['rajaongkir']['results'] ?? [];
-
-            return $data;
-        } catch (RequestException $e) {
-            report($e);
-            return response()->json(['error' => 'Error fetching data from the API'], 500);
-        }
+        parent::__construct();
+        $this->RajaOngkirService = $RajaOngkirService;
     }
 
     public function handle()
     {
-        $check = $this->getCity();
-        dd($check);
+        try {
+            $provinces = $this->RajaOngkirService->getProvince();
+            $provinces = array_map(function ($item) {
+                $item['created_at'] = now();
+                $item['updated_at'] = now();
+
+                return $item;
+            }, $provinces);
+            Province::createProvincesWithTransaction($provinces);
+
+            $cities = $this->RajaOngkirService->getCity();
+            $cities = array_map(function ($item) {
+                $item['created_at'] = now();
+                $item['updated_at'] = now();
+
+                return $item;
+            }, $cities);
+            City::createCitiesWithTransaction($cities);
+
+            $this->info('Berhasil mengimport data dari rajaongkir');
+        } catch (\Exception $e) {
+            $this->error('Gagal mengimport data dari rajaongkir dengan error: ' . $e);
+        }
     }
 }
