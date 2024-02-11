@@ -40,7 +40,7 @@ class CityController extends Controller
                 return response()->json($cities);
             }
 
-            $city = City::select('city_id', 'province_id', 'province', 'type', 'city_name', 'postal_code')->first();
+            $city = City::select('city_id', 'province_id', 'province', 'type', 'city_name', 'postal_code')->where('city_id', $id)->first();
 
             if ($city) {
                 return response()->json($city);
@@ -48,7 +48,15 @@ class CityController extends Controller
                 return response()->json(['message' => 'City not found'], 404);
             }
         } else if ($sourceImplementation == 'rajaongkir') {
-            return $this->RajaOngkirService->getCity($id);
+
+            $data = $this->RajaOngkirService->getCity($id);
+            if (count($data) < 1) {
+                return response()->json([
+                    'message' => 'City not found'
+                ], 404);
+            }
+
+            return $data;
         }
     }
 

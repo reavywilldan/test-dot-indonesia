@@ -40,7 +40,7 @@ class ProvinceController extends Controller
                 return response()->json($provinces);
             }
 
-            $province = Province::select('province_id', 'province')->where('id', $id)->first();
+            $province = Province::select('province_id', 'province')->where('province_id', $id)->first();
 
             if ($province) {
                 return response()->json($province);
@@ -48,7 +48,14 @@ class ProvinceController extends Controller
                 return response()->json(['message' => 'Province not found'], 404);
             }
         } else if ($sourceImplementation == 'rajaongkir') {
-            return $this->RajaOngkirService->getProvince($id);
+            $data = $this->RajaOngkirService->getProvince($id);
+            if (count($data) < 1) {
+                return response()->json([
+                    'message' => 'Province not found'
+                ], 404);
+            }
+
+            return $data;
         }
     }
 
